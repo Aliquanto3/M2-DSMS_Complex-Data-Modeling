@@ -1,0 +1,28 @@
+{
+    "id": "886FE969",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1634038519073.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "id": "7764433cde784111b7a68cde5f2e92f6",
+        "name": "Output_Curves",
+        "title": "Output_Curves",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1888185899328,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1634038519073,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,26 @@
+{
+    "id": "E04CEBF9",
+    "path": "~/MDC/Code_Yahi.R",
+    "project_path": "Code_Yahi.R",
+    "type": "r_source",
+    "hash": "3994609624",
+    "contents": "",
+    "dirty": false,
+    "created": 1632222012526.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "287,0",
+        "scrollLine": "267"
+    },
+    "folds": "44|43|55|0|\n59|39|73|0|\n84|12|122|3|\n125|34|145|0|\n148|35|162|0|\n",
+    "lastKnownWriteTime": 1632227982,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1632227982982,
+    "read_only": false,
+    "read_only_alternatives": []
+}

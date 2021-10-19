@@ -1,0 +1,545 @@
+#########
+# 2 Construction and analyze of a simple mathematical
+# model
+
+set.seed(12345) #for reproductibility
+
+#####
+# Exercise 2.1 Model construction
+
+# 1. Code for some values of the parameters N, a, b and c, the following model :
+#   Un+1 = a ? U
+#   c
+#   n + b, (2.1)
+#   where n ??? [[0; N]] and U(0) = U0.
+  
+N=7
+a=5
+b=6
+c=0.05
+U0=2
+Un=list(U0)
+
+for (i in 1:N){
+  Un[i+1]=a*Un[[i]]**c+b
+}
+
+Un
+
+Computed_Outputs=data.frame(matrix(ncol = 6, nrow = 0))
+names(Computed_Outputs)=c("Un","U0","N","a","b","c")
+
+Computed_Outputs=rbind(Computed_Outputs,
+                       data.frame(Un=I(list(Un)),U0=U0,N=N,a=a,b=b,c=c))
+#This is the variable where the results are stored
+Computed_Outputs
+
+# 2. Define the format you will use to store the time series that will come out your
+# functions ;
+
+#The values of the time series are stored in a vector : c().
+#The results and the initial values are stored in a data frame, with the vector
+# of values entered as an inhibited list.
+
+# 3. Construct a function Generate Output which takes as inputs U0, N, a, b and c,
+# and compute the time series (Un) ;
+
+Generate_Output = function(U0, N, a, b, c){
+  Un=c(U0)
+  for (i in 1:N){
+    Un[i+1]=a*Un[i]**c+b
+  }
+  #<<- to update the global variable
+  Computed_Outputs<<-rbind(Computed_Outputs,
+                         data.frame(Un=I(list(Un)),U0=U0,N=N,a=a,b=b,c=c))
+  
+  #returned result
+  data.frame(Un=I(list(Un)),U0=U0,N=N,a=a,b=b,c=c)
+}
+
+#Function to check whether the result is already available and return it
+# or compute it if needed
+Give_Output = function(U0, N, a, b, c){
+  
+  already_Computed=Computed_Outputs[Computed_Outputs["U0"]==U0 &
+                                      Computed_Outputs["N"]==N &
+                                      Computed_Outputs["a"]==a &
+                                      Computed_Outputs["b"]==b &
+                                      Computed_Outputs["c"]==c,]
+  if (nrow(already_Computed)>=1){
+    Result_Output=already_Computed[1,]
+    
+  }else{
+    Result_Output=Generate_Output(U0, N, a, b, c)
+  }
+  Result_Output
+}
+
+
+
+# 4. Let N = 40, a ??? [2; 5], b ??? [1; 5] and , c ??? [0.1; 0.9]. For different values of a, b and
+# c, generate 6 curves. Present the results by specifying the values of a, b and c
+noCurves=9 #We choose 9 curves instead of 6 for more accuracy
+U0=1
+N=40
+#TODO: To be updated if the values are not dividable by 3
+
+############
+#To be used if you want random values of the parameters
+# par(mfrow=c(noCurves/3,3))
+# #Generate noCurves (6 in the question) combinations of random a, b and c.
+# curveValues=data.frame(matrix(ncol = 3, nrow = 0))
+# for (i in 1:noCurves){
+#   curveValuesi=c(runif(1, min=2, max=5),
+#                   runif(1, min=1, max=5),
+#                   runif(1, min=0.1, max=0.9))
+#   curveValues=rbind(curveValues,curveValuesi)
+# }
+# names(curveValues)=c("a", "b", "c")
+# curveValues
+# 
+# #Print the table with the minimum and maximum values for each variable
+# minMaxCurveValues=c(min(curveValues$a),min(curveValues$b),min(curveValues$c),
+# max(curveValues$a),max(curveValues$b),max(curveValues$c))
+# minMaxCurveValuesTable=as.data.frame(matrix(minMaxCurveValues, nrow = 2, ncol = 3,byrow = TRUE))
+# colnames(minMaxCurveValuesTable)=c("a","b","c")
+# rownames(minMaxCurveValuesTable)=c("Minimum","Maximum")
+# 
+# minMaxCurveValuesTable
+# 
+# #Get the list of results corresponding to each noCurves of the combinations in a dataframe
+# dfUn=data.frame(matrix(ncol = ncol(Computed_Outputs), nrow = 0))
+# names(dfUn)=names(Computed_Outputs)
+# for (i in 1:noCurves){
+#   dfUn=rbind(dfUn,Give_Output(U0,N,curveValues[i,]$a,curveValues[i,]$b,curveValues[i,]$c))
+# }
+# 
+# #Print all the noCurves generated lists
+# #TODO: To be updated if the values are not dividable by 3
+# par(mfrow=c(nrow(curveValues)/3,3))
+# 
+# for (i in 1:nrow(curveValues)){
+#   plot(dfUn[i,]$Un[[1]], xlab="n",ylab="Un",main=paste("a=",round(x=curveValues[i,]$a,digits =3),
+#                                                  ", b=",round(x=curveValues[i,]$b,digits =3),
+#                                                  ", c=",round(x=curveValues[i,]$c,digits =3),sep=""))
+# }
+###########
+#Function to provide the list of Un depending on a list of parameters
+curveValuesFunc = function(a,b,c){
+  curveValues=data.frame(matrix(ncol = 3, nrow = 0))
+  for (i in 1:noCurves){
+    curveValuesi=c(a[i],b[i],c[i])
+    curveValues=rbind(curveValues,curveValuesi)
+  }
+  names(curveValues)=c("a", "b", "c")
+  
+  
+  #Get the list of results corresponding to each noCurves of the combinations 
+  #in a dataframe
+  dfUn=data.frame(matrix(ncol = ncol(Computed_Outputs), nrow = 0))
+  names(dfUn)=names(Computed_Outputs)
+  for (i in 1:noCurves){
+    dfUn=rbind(dfUn,Give_Output(U0,N,
+                                curveValues[i,]$a,
+                                curveValues[i,]$b,
+                                curveValues[i,]$c))
+  }
+  list(curveValues,dfUn)
+}
+
+#Function to print the curves
+printCurveValues = function(a,b,c){
+  #Get the list of results corresponding to each noCurves of the combinations in 
+  #a dataframe
+  listUn=curveValuesFunc(a,b,c)
+  curveValues=listUn[[1]]
+  dfUn=listUn[[2]]
+  
+  #Print the curves
+  par(mfrow=c(noCurves/3,3))
+  for (i in 1:nrow(dfUn)){
+    plot(dfUn[i,]$Un[[1]], xlab="n",ylab="Una",main=paste("a=",round(x=curveValues[i,]$a,digits =3),
+                                                           ", b=",round(x=curveValues[i,]$b,digits =3),
+                                                           ", c=",round(x=curveValues[i,]$c,digits =3),sep=""))
+  }
+}
+
+#Print ordered by a value
+aa=seq(from=2,to=5,length.out=noCurves)
+ba=rep(3,noCurves)
+ca=rep(0.5,noCurves)
+
+printCurveValues(aa,ba,ca)
+
+
+
+#Print ordered by b value
+ab=rep(3.5,noCurves)
+bb=seq(from=1,to=5,length.out=noCurves)
+cb=rep(0.5,noCurves)
+
+printCurveValues(ab,bb,cb)
+
+#Print ordered by c value
+ac=rep(3.5,noCurves)
+bc=rep(3,noCurves)
+cc=seq(from=0.1,to=0.9,length.out=noCurves)
+
+printCurveValues(ac,bc,cc)
+
+# 5. Describe the influence of each parameter on the curve profile. 
+# What kind of phenomena can be modeled thanks to this mathematical model ?
+
+#You can run the following commands to see that influence, 
+#after executing the commands above.
+#For a:
+printCurveValues(aa,ba,ca)
+
+#The a parameter seems to have little impact on the values, mostly 
+#increasing the maximum value to be reached, from about 9 to 30 in this example.
+#The number of iterations needed to get very close to the maximum also increases
+#a little, going from 6 to 9.
+
+#For b:
+printCurveValues(ab,bb,cb)
+
+#The b parameter has a very minor impact on the values, the maximum going from 
+#14 to 21 in the domain of b we cover.
+#The higher b, the lower the number of iterations to get close to the maximum
+#becomes, going down from about 9 to 6.
+
+#For c:
+printCurveValues(ac,bc,cc)
+
+#The c parameter has a high impact on the values. The maximum goes from about 7
+#to 200,000. It also requires many more iterations to reach a value close to the 
+#maximum, with 3 iterations needed in the first case, and the maximum not being
+#reached after 40 iterations in the last case.
+
+#This kind of model is useful for the growth of animals or plants, as they reach 
+#their maximum height once they are adult and it barely changes from here.
+#It can also be relevant to model the spreading of a phenomenon or a disease in a
+#population, as it will reach a maximum after some time (the complete population, 
+#or at least those that can be affected), or how populations may spread and settle
+#in a new region.
+
+#####
+#Exercise 2.2 Behavior of the parameters of the model
+
+# 2. By varying the values of the parameters a, b and c, describe the sensitivity of each
+# of them. Briefly describe your approach ;
+
+#Parameter a:
+UnaMax=data.frame(matrix(ncol = 2, nrow = 0))
+for (i in 1:nrow(dfUna)){
+  UnaMaxi=c(dfUna[i,]$a,max(dfUna[i,]$Un[[1]]))
+  UnaMax=rbind(UnaMax,UnaMaxi)
+}
+names(UnaMax)=c("a","Maxa")
+UnaMax
+#The result is multiplied by 3.41
+max(UnaMax$Maxa)/min(UnaMax$Maxa)
+#when we multiply a by 2.5
+max(UnaMax$a)/min(UnaMax$a)
+#so the growth by multiplication is of 1.36
+(max(UnaMax$Maxa)/min(UnaMax$Maxa))/((max(UnaMax$a)/min(UnaMax$a)))
+
+#With a gradient:
+((max(UnaMax$Maxa)-min(UnaMax$Maxa)))/((max(UnaMax$a)-min(UnaMax$a)))
+#we get 7.24
+
+#Parameter b:
+UnbMax=data.frame(matrix(ncol = 2, nrow = 0))
+for (i in 1:nrow(dfUnb)){
+  UnbMaxi=c(dfUnb[i,]$b,max(dfUnb[i,]$Un[[1]]))
+  UnbMax=rbind(UnbMax,UnbMaxi)
+}
+names(UnbMax)=c("b","Maxb")
+UnbMax
+#The result is multiplied by 1.49
+max(UnbMax$Maxb)/min(UnbMax$Maxb)
+#when we multiply b by 5
+max(UnbMax$b)/min(UnbMax$b)
+#so the growth by multiplication is of 0.30
+(max(UnbMax$Maxb)/min(UnbMax$Maxb))/((max(UnbMax$b)/min(UnbMax$b)))
+
+#With a gradient:
+(max(UnbMax$Maxb)-min(UnbMax$Maxb))/((max(UnbMax$b)-min(UnbMax$b)))
+#we get 1.72
+
+#Parameter c:
+UncMax=data.frame(matrix(ncol = 2, nrow = 0))
+for (i in 1:nrow(dfUnc)){
+  UncMaxi=c(dfUnc[i,]$c,max(dfUnc[i,]$Un[[1]]))
+  UncMax=rbind(UncMax,UncMaxi)
+}
+names(UncMax)=c("c","Maxc")
+UncMax
+#The result is multiplied by 32023
+max(UncMax$Maxc)/min(UncMax$Maxc)
+#when we multiply c by 9
+max(UncMax$c)/min(UncMax$c)
+#so the growth by multiplication is of 3558
+(max(UncMax$Maxc)/min(UncMax$Maxc))/((max(UncMax$c)/min(UncMax$c)))
+
+#With a gradient:
+(max(UncMax$Maxc)-min(UncMax$Maxc))/((max(UncMax$c)-min(UncMax$c)))
+#we get 290918
+
+#However, we can do the same with different values for the other parameters
+
+#Print ordered by a value
+aa=seq(from=2,to=5,length.out=noCurves)
+ba=rep(1,noCurves)
+ca=rep(0.1,noCurves)
+
+printCurveValues(ac,bc,cc)
+
+
+
+#3. Construct a parameter sensitivity indicator and explain it ;
+
+#We choose a single parameter to evaluate
+#We iterate over multiple values of a, b and c a chosen number of times
+#on a chosen domain for each parameter, and we take the maximum value 
+#of the model for those parameters.
+#We also try to do the same for the same parameters, except that for
+#the parameter we evaluate, we increment it a little, and we compare
+#both results with a subtraction.
+#We then divide the result of that subtraction by the increment of 
+#the parameter.
+#Last we sum all those differences (in absolute value in order to get 
+#distances), and we divide it by the number of iterations over that parameter
+#in order to get an average value.
+#The value we get is considered as the sensitivity indicator
+avgSensitivyIndicator = function(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname){
+  aseq=seq(from=amin,to=amax,length.out=abclen)
+  bseq=seq(from=bmin,to=bmax,length.out=abclen)
+  cseq=seq(from=cmin,to=cmax,length.out=abclen)
+  
+  sensi=0
+  
+  if (paramname=="a"){
+    for (i in 1:(abclen-1)){
+      for (bi in bseq){
+        for (ci in cseq){
+          ai1=aseq[i]
+          ai2=aseq[i+1]
+          sensi=sensi+
+            abs(max(Give_Output(U0,abclen,ai2,bi,ci)$Un[[1]])-
+            max(Give_Output(U0,abclen,ai1,bi,ci)$Un[[1]]))/
+            abs(ai2-ai1)
+        }
+      }
+    }
+  }
+  
+  
+  if (paramname=="b"){
+    for (i in 1:(abclen-1)){
+      for (ci in cseq){
+        for (ai in aseq){
+          bi1=bseq[i]
+          bi2=bseq[i+1]
+          sensi=sensi+
+            abs(max(Give_Output(U0,abclen,ai,bi2,ci)$Un[[1]])-
+            max(Give_Output(U0,abclen,ai,bi1,ci)$Un[[1]]))/
+            abs(bi2-bi1)
+        }
+      }
+    }
+  }
+  
+  
+  if (paramname=="c"){
+    for (i in 1:(abclen-1)){
+      for (ai in aseq){
+        for (bi in bseq){
+          ci1=cseq[i]
+          ci2=cseq[i+1]
+          sensi=sensi+
+            abs(max(Give_Output(U0,abclen,ai,bi,ci2)$Un[[1]])-
+            max(Give_Output(U0,abclen,ai,bi,ci1)$Un[[1]]))/
+            abs(ci2-ci1)
+        }
+      }
+    }
+  }
+  
+  return(sensi/abclen)
+  
+}
+
+U0=1
+amin=2
+amax=5
+bmin=1
+bmax=5
+cmin=0.1
+cmax=0.9
+abclen=10
+
+#4. Compute the value of your indicator associated to each parameter ;
+paramname="a"
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname)
+#141769.6
+paramname="b"
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname)
+#7578.562
+paramname="c"
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname)
+#1325626
+
+#5. Conclude about the problems which may be encountered due to a high 
+#sensitivity of parameters.
+
+#As soon as you change just a little the value of your parameter, the results
+#may vary wildly, making it hard to get a conclusion.
+
+#Exercise 2.3 Distribution of the parameters
+
+#1. List and describe the inputs and the outputs of the model ;
+
+#The input is U0, the starting value of the time serie.
+
+#Between the inputs and outputs there are the parameters:
+#a
+#b
+#c
+#and N.
+
+#The output is a time series Un.
+
+#2. What can be the law of probability of the parameters a, b and c ? 
+#Justify your answer
+
+#In the nature, by default, a Normal law can be used.
+
+#3. What can be the law of probability of the inputs ? Justify your answer ;
+
+#Same answer
+
+# 4. Set the parameters of those probability laws at values that look suitable 
+#to you.
+# Specify the chosen values, justify them and present the obtained histograms ;
+
+U0=1
+amin=2
+amax=5
+bmin=1
+bmax=5
+cmin=0.1
+cmax=0.9
+abclen=10
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="a")
+#141769.6
+amin=0.1
+amax=2
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="a")
+#1324.824
+amin=0.1
+amax=1
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="a")
+#309.6653
+amin=0.2
+amax=0.5
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="a")
+#222.1958
+
+#a=[0.1;1] appears to be reasonable to minimize the sensitivity,
+#while leaving some room to vary the results.
+#Besides, reducing the size of the sample doesn't reduce linearly the sensitivity.
+amin=0.1
+amax=1
+
+bmin=1
+bmax=5
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="b")
+#114.1527
+
+bmin=1
+bmax=10
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="b")
+#110.5385
+
+bmin=1
+bmax=50
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="b")
+#103.7835
+
+bmin=1
+bmax=3
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="b")
+#116.997
+
+#The sensibility of the b indicator barely changes, and even gets smaller for 
+#higher values, meaning its growth must be close to logarithmic given that
+#the subtraction of the sensitivity function shrinks it.
+#Let us stay with the initial values then: b=[1;5]
+bmin=1
+bmax=5
+
+cmin=0.1
+cmax=0.9
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="c")
+#222.1015
+#We can already note that dropping the sensitivity of a by choosing another 
+#domain dropped the sensitivity
+
+cmin=0.1
+cmax=0.5
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="c")
+#85.45952
+
+cmin=0.1
+cmax=1
+avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="c")
+#437.2899
+
+#We can keep the initial domain to have a similar value for the sensitivity 
+#as we have with parameter a. The sensitivity for the parameter b is about
+#half of that value for the chosen domains, and it makes sense to keep its
+#sensitivity lower than the one of the other two since it was so much less
+#impactful initially.
+#So we remain with c=[0.1;0.9]
+cmin=0.1
+cmax=0.9
+
+#For general of normal laws, it would give:
+#a=[0.1;1] => Mean = 0.55, SD = 0.45
+#b=[1;5] => Mean = 3, SD = 2
+#c=[0.1;0.9] => Mean = 0.5, SD = 0.4
+a=rnorm(1,mean=0.55,sd=0.45)
+b=rnorm(1,mean=3,sd=2)
+c=rnorm(1,mean=0.5,sd=0.4)
+a;b;c
+
+par(mfrow=c(1,3))
+a_values=rnorm(N,mean=0.55,sd=0.45)
+b_values=rnorm(N,mean=3,sd=2)
+c_values=rnorm(N,mean=0.5,sd=0.4)
+hist(a_values,main="Values of param a")
+hist(b_values,main="Values of param b")
+hist(c_values,main="Values of param c")
+
+
+#3 Simulation tests
+#Exercise 3.1 The notion of noisy data
+
+#1. Describe the notion of noise in the context of data collection ;
+
+#The noise is the impact of elements that would be external to the model,
+#such as tools not working, the weather changes that may be underestimated 
+#in a period, human errors... It appears to make the data more chaotic.
+
+#2. What problems may be encountered due to the presence of noise ?
+#It can be harder to determine the actual law of the model, or the data 
+#might become unusable.
+
+#3. What can be the law of probability of this random component ?
+#A normal law can be used for noise modeling.
+
+#Exercise 3.2 Generation of a learning database
+#1. Verify that the parameters of the probability laws of a, b and c previously set,
+#ensure the relative stability of the outputs. If it is not the case, modify those pro-
+#bability laws in order to ensure it. Fix N at 40 and M at 100 ;

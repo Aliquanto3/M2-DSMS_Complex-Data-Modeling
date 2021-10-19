@@ -1,0 +1,155 @@
+# 2 Construction and analyze of a simple mathematical
+# model
+# Exercise 2.1 Model construction
+
+# 1. Code for some values of the parameters N, a, b and c, the following model :
+#   Un+1 = a ? U
+#   c
+#   n + b, (2.1)
+#   where n ??? [[0; N]] and U(0) = U0.
+  
+N=7
+a=5
+b=6
+c=0.05
+U0=2
+Un=list(U0)
+
+for (i in 1:N){
+  Un[i+1]=a*Un[[i]]**c+b
+}
+
+Un
+
+Computed_Outputs=data.frame(matrix(ncol = 6, nrow = 0))
+names(Computed_Outputs)=c("Un","U0","N","a","b","c")
+
+Computed_Outputs=rbind(Computed_Outputs,
+                       data.frame(Un=I(list(Un)),U0=U0,N=N,a=a,b=b,c=c))
+Computed_Outputs
+
+# 2. Define the format you will use to store the time series that will come out your
+# functions ;
+
+#The values of the time series are stored in a vector : c().
+#The results and the initial values are stored in a data frame, with the vector
+# of values entered as an inhibited list.
+
+# 3. Construct a function Generate Output which takes as inputs U0, N, a, b and c,
+# and compute the time series (Un) ;
+
+Generate_Output = function(U0, N, a, b, c){
+  Un=c(U0)
+  for (i in 1:N){
+    Un[i+1]=a*Un[i]**c+b
+  }
+  #<<- to update the global variable
+  Computed_Outputs<<-rbind(Computed_Outputs,
+                         data.frame(Un=I(list(Un)),U0=U0,N=N,a=a,b=b,c=c))
+  
+  #returned result
+  data.frame(Un=I(list(Un)),U0=U0,N=N,a=a,b=b,c=c)
+}
+
+#Function to check whether the result is already available and return it
+# or compute it if needed
+Give_Output = function(U0, N, a, b, c){
+  
+  already_Computed=Computed_Outputs[Computed_Outputs["U0"]==U0 &
+                                      Computed_Outputs["N"]==N &
+                                      Computed_Outputs["a"]==a &
+                                      Computed_Outputs["b"]==b &
+                                      Computed_Outputs["c"]==c,]
+  if (nrow(already_Computed)>=1){
+    Result_Output=already_Computed[1,]
+    
+  }else{
+    Result_Output=Generate_Output(U0, N, a, b, c)
+  }
+  Result_Output
+}
+
+
+
+# 4. Let N = 40, a ??? [2; 5], b ??? [1; 5] and , c ??? [0.1; 0.9]. For different values of a, b and
+# c, generate 6 curves. Present the results by specifying the values of a, b and c
+noCurves=9
+U0=1
+N=40
+
+#Generate noCurves (9 in the question) combinations of random a, b and c.
+curveValues=data.frame(matrix(ncol = 3, nrow = 0))
+for (i in 1:noCurves){
+  curveValuesi=c(runif(1, min=2, max=5),
+                  runif(1, min=1, max=5),
+                  runif(1, min=0.1, max=0.9))
+  curveValues=rbind(curveValues,curveValuesi)
+}
+names(curveValues)=c("a", "b", "c")
+curveValues
+
+#Print the table with the minimum and maximum values for each variable
+minMaxCurveValues=c(min(curveValues$a),min(curveValues$b),min(curveValues$c),
+max(curveValues$a),max(curveValues$b),max(curveValues$c))
+minMaxCurveValuesTable=as.data.frame(matrix(minMaxCurveValues, nrow = 2, ncol = 3,byrow = TRUE))
+colnames(minMaxCurveValuesTable)=c("a","b","c")
+rownames(minMaxCurveValuesTable)=c("Minimum","Maximum")
+
+minMaxCurveValuesTable
+
+#Get the list of results corresponding to each noCurves of the combinations in a dataframe
+dfUn=data.frame(matrix(ncol = ncol(Computed_Outputs), nrow = 0))
+names(dfUn)=names(Computed_Outputs)
+for (i in 1:noCurves){
+  dfUn=rbind(dfUn,Give_Output(U0,N,curveValues[i,]$a,curveValues[i,]$b,curveValues[i,]$c))
+}
+
+#Print all the noCurves generated lists
+#TODO: To be updated if the values are not dividable by 3
+par(mfrow=c(nrow(curveValues)/3,3))
+
+for (i in 1:nrow(curveValues)){
+  plot(dfUn[i,]$Un[[1]], xlab="n",ylab="Un",main=paste("a=",round(x=curveValues[i,]$a,digits =3),
+                                                 ", b=",round(x=curveValues[i,]$b,digits =3),
+                                                 ", c=",round(x=curveValues[i,]$c,digits =3),sep=""))
+}
+
+#Print ordered by a value
+dfUn=dfUn[order(dfUn$a),]
+curveValues=curveValues[order(curveValues$a),]
+for (i in 1:nrow(curveValues)){
+  plot(dfUn[i,]$Un[[1]], xlab="n",ylab="Un",main=paste("a=",round(x=curveValues[i,]$a,digits =3),
+                                                       ", b=",round(x=curveValues[i,]$b,digits =3),
+                                                       ", c=",round(x=curveValues[i,]$c,digits =3),sep=""))
+}
+
+#Print ordered by b value
+dfUn=dfUn[order(dfUn$b),]
+curveValues=curveValues[order(curveValues$b),]
+for (i in 1:nrow(curveValues)){
+  plot(dfUn[i,]$Un[[1]], xlab="n",ylab="Un",main=paste("a=",round(x=curveValues[i,]$a,digits =3),
+                                                       ", b=",round(x=curveValues[i,]$b,digits =3),
+                                                       ", c=",round(x=curveValues[i,]$c,digits =3),sep=""))
+}
+
+#Print ordered by c value
+dfUn=dfUn[order(dfUn$c),]
+curveValues=curveValues[order(curveValues$c),]
+for (i in 1:nrow(curveValues)){
+  plot(dfUn[i,]$Un[[1]], xlab="n",ylab="Un",main=paste("a=",round(x=curveValues[i,]$a,digits =3),
+                                                       ", b=",round(x=curveValues[i,]$b,digits =3),
+                                                       ", c=",round(x=curveValues[i,]$c,digits =3),sep=""))
+}
+
+
+# 5. Describe the influence of each parameter on the curve profile. 
+# What kind of phenomena can be modeled thanks to this mathematical model ?
+  
+#The maximum values are reached when c is the highest.
+#It also takes more iterations to reach the maximum value, or at least get close to it.
+#This kind of model is useful for the growth of animals or plants, as they reach 
+#their maximum height once they are adult and it barely changes from here.
+#It can also be relevant to model the spreading of a phenomenon or a disease in a
+#population, as it will reach a maximum after some time (the complete population, 
+#or at least those that can be affected), or how populations may spread and settle
+#in a new region.

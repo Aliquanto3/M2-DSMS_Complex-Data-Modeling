@@ -1,0 +1,86 @@
+# 2 Construction and analyze of a simple mathematical
+# model
+# Exercise 2.1 Model construction
+
+# 1. Code for some values of the parameters N, a, b and c, the following model :
+#   Un+1 = a ? U
+#   c
+#   n + b, (2.1)
+#   where n ??? [[0; N]] and U(0) = U0.
+  
+N=7
+a=5
+b=6
+c=0.05
+U0=2
+Un=c(U0)
+
+for (i in 1:N){
+  Un[i+1]=a*Un[i]**c+b
+}
+
+Un
+
+# 2. Define the format you will use to store the time series that will come out your
+# functions ;
+
+#The values of the time series are stored in a vector : c()
+
+# 3. Construct a function Generate Output which takes as inputs U0, N, a, b and c,
+# and compute the time series (Un) ;
+Generate_Output = function(U0, N, a, b, c){
+  Un=c(U0)
+  for (i in 1:N){
+    Un[i+1]=a*Un[i]**c+b
+  }
+  Un
+}
+
+# 4. Let N = 40, a ??? [2; 5], b ??? [1; 5] and , c ??? [0.1; 0.9]. For different values of a, b and
+# c, generate 6 curves. Present the results by specifying the values of a, b and c
+noCurves=9
+U0=1
+N=40
+
+curveValues=data.frame(matrix(ncol = 3, nrow = 0))
+for (i in 1:noCurves){
+  curveValuesi=c(runif(1, min=2, max=5),
+                  runif(1, min=1, max=5),
+                  runif(1, min=0.1, max=0.9))
+  curveValues=rbind(curveValues,curveValuesi)
+}
+names(curveValues)=c("a", "b", "c")
+curveValues
+min(curveValues$a)
+min(curveValues$b)
+min(curveValues$c)
+
+max(curveValues$a)
+max(curveValues$b)
+max(curveValues$c)
+
+listUn=list()
+for (i in 1:nrow(curveValues)){
+  listUn[i]=list(Generate_Output(U0,N,curveValues[i,]$a,curveValues[i,]$b,curveValues[i,]$c))
+}
+
+par(mfrow=c(nrow(curveValues)/3,3))
+for (i in 1:nrow(curveValues)){
+  plot(listUn[i][[1]], xlab="n",ylab="Un",main=paste("a=",round(x=curveValues[i,]$a,digits =3),
+                                                 ", b=",round(x=curveValues[i,]$b,digits =3),
+                                                 ", c=",round(x=curveValues[i,]$c,digits =3),sep=""))
+}
+
+
+
+# 5. Describe the influence of each parameter on the curve profile. 
+# What kind of phenomena can be modeled thanks to this mathematical model ?
+  
+#The maximum values are reached when c is the highest.
+#It also takes more iterations to reach the maximum value, or at least get close to it.
+#This kind of model is useful for the growth of animals or plants, as they reach 
+#their maximum height once they are adult and it barely changes from here.
+#It can also be relevant to model the spreading of a phenomenon or a disease in a
+#population, as it will reach a maximum after some time (the complete population, 
+#or at least those that can be affected), or how populations may spread and settle
+#in a new region.

@@ -1,0 +1,3 @@
+https://www.math.ucla.edu/~anderson/rw1001/library/base/html/kappa.html
+
+https://en.wikipedia.org/wiki/Condition_number
