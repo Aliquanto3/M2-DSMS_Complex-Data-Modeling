@@ -692,11 +692,11 @@ CurveDiff(Curve1,Curve2)
 
 #T has the role of N, we remove it
 #We take the first U0 we find for the corresponding parameters
-Rel_Diff=function(a_t , b_t , c_t, TrainingBase=Main_Training_Base){
-  TrainCurve=TrainingBase[TrainingBase$a==a_t &
-                            TrainingBase$b==b_t &
-                            TrainingBase$c==c_t,][
-                                 4:length(TrainingBase)]#Removes a,b,c
+Rel_Diff=function(a_t , b_t , c_t){
+  TrainCurve=Main_Training_Base[Main_Training_Base$a==a_t &
+                               Main_Training_Base$b==b_t &
+                               Main_Training_Base$c==c_t,][
+                                 4:length(Main_Training_Base)]#Removes a,b,c
   
   #We take the first U0 we find for the corresponding parameters to generate
   #a new curve
@@ -748,46 +748,28 @@ f_obj = function(a_t , b_t , c_t, TrainingBase=Main_Training_Base){
   
   tmpDiff=c()
   for (i in 1:ncol(TestCurves)){
-    tmpDiff=c(tmpDiff,CurveDiff(TrainCurve[i,],TestCurves[,i]$Un[[1]]))
+    tmpDiff=c(tmpDiff,CurveDiff(TrainCurve,TestCurves[,i]$Un[[1]]))
   }
   
   mean(tmpDiff)
 }
 
-a_t=Main_Training_Base$a[2]
-b_t=Main_Training_Base$b[2]
-c_t=Main_Training_Base$c[2]
-f2_test=f_obj(a_t , b_t , c_t);f2_test
-
-rd2_test=Rel_Diff(a_t , b_t , c_t);rd2_test
-rd2_test==f2_test
-
 a_t=Main_Training_Base$a[1]
 b_t=Main_Training_Base$b[1]
 c_t=Main_Training_Base$c[1]
-f1_test=f_obj(a_t , b_t , c_t);f1_test
+f_obj(a_t , b_t , c_t)
 
-rd1_test=Rel_Diff(a_t , b_t , c_t);rd1_test
-rd1_test==f1_test
-
-#f_obj and Rel_Diff return the same results for identical parameters.
 #This function seems to work, but we do not have at least two lines with the
-#same combination a, b and c (and in addition a different U0) in the database.
+#same combination a, b and c (and in addition a different U0).
 #So let us add a temporary row that would suit us.
-Copy_Training_Base=Main_Training_Base
-rowToClone=Copy_Training_Base[1,]
+rowToClone=Main_Training_Base[1,]
 #create a copy of the row with another U0
 tempUn=Generate_Output(rowToClone$U0+1, N, rowToClone$a, rowToClone$b, rowToClone$c)
-#We confirm that we use the same parameters as in the above test
-c(a_t , b_t , c_t)==c(rowToClone$a, rowToClone$b, rowToClone$c)
 #Add some noise
 tempUn$Un[[1]]=tempUn$Un[[1]]+t(rnorm(N+1,mean=0,sd=0.1))
-rowToAdd=c(tempUn$a,tempUn$b,tempUn$c,  tempUn$Un[[1]])
-Copy_Training_Base[nrow(Copy_Training_Base) + 1,] = rowToAdd
-f1b_test=f_obj(rowToClone$a , rowToClone$b , rowToClone$c, Copy_Training_Base)
-f1b_test
-#There are now 2 rows that are taken into account for f_obj, and it still works
-c(f1_test,f1b_test) #As expected, the results are different
+Main_Training_Base[nrow(Main_Training_Base) + 1,] = c(tempUn$a,tempUn$b,tempUn$c,
+                                                      tempUn$Un[[1]])
+f_obj(rowToClone$a , rowToClone$b , rowToClone$c)
 
 # 6. Explain what can be the purpose of this function and what is the origin of 
 # its name ;
