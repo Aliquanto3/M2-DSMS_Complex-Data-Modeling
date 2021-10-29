@@ -499,7 +499,7 @@ avgSensitivyIndicator(U0,amin,amax,bmin,bmax,cmin,cmax,abclen,paramname="c")
 cmin=0.1
 cmax=0.9
 
-#For general of normal laws, it would give:
+#For general of normal laws, it would give at 95% CI:
 #a=[0.1;1] => Mean = 0.55, SD = 0.45
 #b=[1;5] => Mean = 3, SD = 2
 #c=[0.1;0.9] => Mean = 0.5, SD = 0.4
@@ -517,6 +517,8 @@ hist(a_values,main="Values of param a")
 hist(b_values,main="Values of param b")
 hist(c_values,main="Values of param c")
 
+#A few values should still be out of bound, so we can eventually use them to try
+#out different results later.
 
 #3 Simulation tests
 #Exercise 3.1 The notion of noisy data
@@ -738,7 +740,7 @@ f_Predicted_Curves=function(All_U0 , N, a_t , b_t , c_t){
 
 f_obj = function(a_t , b_t , c_t, TrainingBase=Main_Training_Base){
   
-  #Takes the values of the time serie without a,b,c
+  #Takes the values of the time series without a,b,c
   TrainCurve=TrainingBase[TrainingBase$a==a_t &
                             TrainingBase$b==b_t &
                             TrainingBase$c==c_t,][4:length(TrainingBase)]
@@ -787,8 +789,41 @@ Copy_Training_Base[nrow(Copy_Training_Base) + 1,] = rowToAdd
 f1b_test=f_obj(rowToClone$a , rowToClone$b , rowToClone$c, Copy_Training_Base)
 f1b_test
 #There are now 2 rows that are taken into account for f_obj, and it still works
-c(f1_test,f1b_test) #As expected, the results are different
+c(f1_test,f1b_test) #As expected, the results are slightly different
 
 # 6. Explain what can be the purpose of this function and what is the origin of 
 # its name ;
 
+#This function is the objective function. We will use it to measure the 
+#efficiency of our models. The closer to 0 the result is, the better.
+
+#7. Explain briefly what is the purpose of the algorithm DIRECT and its 
+#functioning ;
+
+#DIRECT means DIviding RECTangles. It was first published in 1993.
+#It is a deterministic method, that is faster than the usual ones (though some
+#say it can be harder to reach a high accuracy with it, hence additional work
+#on the topic later).
+#You are supposed to apply it to a function with variables that belong to 
+#domains that are not infinite.
+#It allows you to find the minimum of that function, through dividing the space
+#in subspaces, and searching each time for the subspace that is the most likely
+#to contain the minimum. To do so, it checks the value of the central point of
+#each "rectangle" that is cut into the space.
+
+# 8. By using the function f_obj, use the algorithm DIRECT to adjust the 
+#parameters a, b and c from the training database. Explain the learning approach
+#and justify the configuration of the algorithm ;
+
+library(nloptr)
+#a=[0.1;1] => Mean = 0.55, SD = 0.45
+#b=[1;5] => Mean = 3, SD = 2
+#c=[0.1;0.9] => Mean = 0.5, SD = 0.4
+direct(f_obj,lower=c(min(Main_Training_Base$a),min(Main_Training_Base$b),
+                     min(Main_Training_Base$c)),
+       upper=c(max(Main_Training_Base$a),max(Main_Training_Base$b),
+               max(Main_Training_Base$c)))
+
+f_obj(0.1,1,0.1)
+f_obj(min(Main_Training_Base$a),min(Main_Training_Base$b),
+      min(Main_Training_Base$c))
