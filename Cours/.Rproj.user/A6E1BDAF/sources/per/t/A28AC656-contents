@@ -1,0 +1,82 @@
+#1.
+X=rnorm(1000)
+hist(X,proba=T)
+lines(density(X),col="red")
+#2. 
+
+#Densité de la loi N(0,1)
+#dnorm(x)
+
+Tri=function(x){
+  (1-abs(x))*(abs(x)<=1)
+}
+
+Rect=function(x){
+  (1/2*abs(x))*(abs(x)<=1)
+}
+
+EP=function(x){
+  (3/4*(1-x**2))*(abs(x)<=1)
+
+}
+
+sinc=function(x){
+  sin(x)/x
+}
+
+#####################################
+#Vérification condition (C2)
+integrate(dnorm,-Inf,Inf)
+integrate(Tri,-Inf,Inf)
+integrate(Rect,-Inf,Inf)
+integrate(EP,-Inf,Inf)
+integrate(sinc,-Inf,Inf)
+
+Trib=function(x){
+  x*Tri(x)
+}
+integrate(Trib,-Inf,Inf)
+
+Tric=function(x){
+  Tri(x)**2
+}
+tau2=integrate(Tric,-Inf,Inf);tau2
+
+Trid=function(x){
+  abs(x)*Tri(x)
+}
+integrate(Trid,-Inf,Inf)
+#####################################
+
+#Représenter graphiquement ces noyaux
+par(mfrow=c(2,3))
+
+curve(dnorm(x), from=-5, to=5, , xlab="x", ylab="y",main="Loi N(0,1)")
+curve(Tri(x), from=-5, to=5, , xlab="x", ylab="y",main="Tri")
+curve(Rect(x), from=-5, to=5, , xlab="x", ylab="y",main="Rect")
+curve(EP(x), from=-5, to=5, , xlab="x", ylab="y",main="EP")
+curve(sinc(x), from=-50, to=50, , xlab="x", ylab="y",main="sinc")
+
+dev.off()
+
+z=seq(-5,5,.01)
+plot(z,dnorm(z),type="l",ylim=c(-0.5,1),xlim=c(-5,5),xlab="x",ylab="y",col="red",main="Noyaux")
+lines(z,Tri(z),col="yellow")
+lines(z,Rect(z),col="green")
+lines(z,EP(z),col="blue")
+lines(z,sinc(z),col="orange")
+legend(4, 0.95, legend=c("N(0,1)", "Tri","Rect","EP","sinc"),
+       col=c("red", "yellow","green","blue","orange"),lty=1)
+
+dev.off()
+
+#3.
+Grid500=expand.grid(X=seq(-5,5,length=500));Grid500
+
+KernelEst=function(x,h,noyauF,abs){
+  
+  f_hat=1/(n*h)*sum(K*(x-X)/h)
+}
+
+testF=sinc
+testF(3)

@@ -1,0 +1,230 @@
+#1.
+set.seed(1234)
+X=rnorm(1000)
+hist(X,proba=T)
+lines(density(X),col="red")
+#2. 
+
+#Densité de la loi N(0,1)
+#dnorm(x)
+
+Tri=function(x){
+  (1-abs(x))*(abs(x)<=1)
+}
+
+Rect=function(x){
+  (1/2*abs(x))*(abs(x)<=1)
+}
+
+EP=function(x){
+  (3/4*(1-x**2))*(abs(x)<=1)
+
+}
+
+sinc=function(x){
+  sin(x)/x
+}
+
+#####################################
+#Vérification condition (C2)
+integrate(dnorm,-Inf,Inf)
+integrate(Tri,-Inf,Inf)
+integrate(Rect,-Inf,Inf)
+integrate(EP,-Inf,Inf)
+integrate(sinc,-Inf,Inf)
+
+Trib=function(x){
+  x*Tri(x)
+}
+integrate(Trib,-Inf,Inf)
+
+Tric=function(x){
+  Tri(x)**2
+}
+tau2=integrate(Tric,-Inf,Inf);tau2
+
+Trid=function(x){
+  abs(x)*Tri(x)
+}
+integrate(Trid,-Inf,Inf)
+#####################################
+
+#Représenter graphiquement ces noyaux
+par(mfrow=c(2,3))
+
+curve(dnorm(x), from=-5, to=5, , xlab="x", ylab="y",main="Loi N(0,1)")
+curve(Tri(x), from=-5, to=5, , xlab="x", ylab="y",main="Tri")
+curve(Rect(x), from=-5, to=5, , xlab="x", ylab="y",main="Rect")
+curve(EP(x), from=-5, to=5, , xlab="x", ylab="y",main="EP")
+curve(sinc(x), from=-50, to=50, , xlab="x", ylab="y",main="sinc")
+
+dev.off()
+
+z=seq(-5,5,.01)
+plot(z,dnorm(z),type="l",ylim=c(-0.5,1),xlim=c(-5,5),xlab="x",ylab="y",col="red",main="Noyaux")
+lines(z,Tri(z),col="yellow")
+lines(z,Rect(z),col="green")
+lines(z,EP(z),col="blue")
+lines(z,sinc(z),col="orange")
+legend(4, 0.95, legend=c("N(0,1)", "Tri","Rect","EP","sinc"),
+       col=c("red", "yellow","green","blue","orange"),lty=1)
+
+dev.off()
+
+#3.
+Grid500=expand.grid(X=seq(-5,5,length=500));Grid500
+
+X=rnorm(1000)
+
+a=min(X);a
+b=max(X);b
+tmp=b-a;tmp
+a=a-tmp;a
+b=b+tmp;b
+
+abs=a+(b-a)*(1:500)/500;abs
+
+KernelEst=function(x,h,Kern,abs){
+  
+  n=length(x)
+  m=length(abs)
+  
+  xx=t(array(data=c(x),dim=c(n,m)))
+  yy=array(data=c(abs),dim=c(m,n))
+  
+  z=(xx-yy)/h
+  
+  Kres=NULL
+  
+  if(Kern=="Tri"){
+    Kres=(1-abs(z))*(abs(z)<=1)
+    
+  }else if(Kern=="Rect"){
+    Kres=(1/2*abs(z))*(abs(z)<=1)
+    
+  }else if(Kern=="EP"){
+    Kres=(3/4*(1-z**2))*(abs(z)<=1)
+    
+  }else if(Kern=="Gauss"){
+    Kres=dnorm(z)
+    
+  }else if(Kern=="sinc"){
+    Kres=sin(z)/z
+  }
+  
+  f_hat=1/(n*h)*as.vector(rowSums(Kres))
+  
+  plot(abs,f_hat,ylab="densité",type="l",col="blue",lwd=2,
+       main=paste("Noyau :",Kern,"- h :",h,sep = " "))
+  return(list(hatf=f_hat,abs=abs))
+}
+
+
+#############################
+#Pour KernelEst qui ne renvoie que f_hat
+# KernelEst(X,0.5,"Tri",abs)
+# KernelEst(X,0.5,"Rect",abs)
+# KernelEst(X,0.5,"EP",abs)
+# KernelEst(X,0.5,"Gauss",abs)
+# KernelEst(X,0.5,"sinc",abs)
+# 
+# resTri0.5=KernelEst(X,0.5,"Tri",abs)
+# resTri1=KernelEst(X,1,"Tri",abs)
+# # resTri0=KernelEst(X,0,"Tri",abs)
+# # hist(resTri0)
+# # plot(resTri0)
+# resTri_1=KernelEst(X,-1,"Tri",abs)
+# resTri_0.5=KernelEst(X,-0.5,"Tri",abs)
+# 
+# par(mfrow=c(2,2))
+# 
+# hist(resTri0.5,main="Triangulaire, h=0.5")
+# hist(resTri1,main="Triangulaire, h=1")
+# hist(resTri_1,main="Triangulaire, h=-1")
+# hist(resTri_0.5,main="Triangulaire, h=-0.5")
+# 
+# dev.off()
+# 
+# par(mfrow=c(2,2))
+# 
+# plot(resTri0.5,main="Triangulaire, h=0.5")
+# plot(resTri1,main="Triangulaire, h=1")
+# plot(resTri_1,main="Triangulaire, h=-1")
+# plot(resTri_0.5,main="Triangulaire, h=-0.5")
+# 
+# dev.off()
+# 
+# resRect0.5=KernelEst(X,0.5,"Rect",abs)
+# resRect1=KernelEst(X,1,"Rect",abs)
+# # resRect0=KernelEst(X,0,"Rect",abs)
+# # hist(resRect0)
+# # plot(resRect0)
+# resRect_1=KernelEst(X,-1,"Rect",abs)
+# resRect_0.5=KernelEst(X,-0.5,"Rect",abs)
+# 
+# par(mfrow=c(2,2))
+# 
+# hist(resRect0.5,main="Rectangulaire, h=0.5")
+# hist(resRect1,main="Rectangulaire, h=1")
+# hist(resRect_1,main="Rectangulaire, h=-1")
+# hist(resRect_0.5,main="Rectangulaire, h=-0.5")
+# 
+# dev.off()
+# 
+# par(mfrow=c(2,2))
+# 
+# plot(resRect0.5,main="Rectangulaire, h=0.5")
+# plot(resRect1,main="Rectangulaire, h=1")
+# plot(resRect_1,main="Rectangulaire, h=-1")
+# plot(resRect_0.5,main="Rectangulaire, h=-0.5")
+# 
+# dev.off()
+##############
+
+dev.off()
+
+par(mfrow=c(2,3))
+
+h=0.2
+
+head(KernelEst(X,h,"Tri",abs))
+lines(abs,Tri(abs),col="red",lwd=2)
+lines(abs,dnorm(abs),col="green",lwd=2)
+head(KernelEst(X,h,"Rect",abs))
+lines(abs,Rect(abs),col="red",lwd=2)
+lines(abs,dnorm(abs),col="green",lwd=2)
+head(KernelEst(X,h,"EP",abs))
+lines(abs,EP(abs),col="red",lwd=2)
+lines(abs,dnorm(abs),col="green",lwd=2)
+head(KernelEst(X,h,"Gauss",abs))
+lines(abs,dnorm(abs),col="red",lwd=2)
+lines(abs,dnorm(abs),col="green",lwd=2)
+head(KernelEst(X,h,"sinc",abs))
+lines(abs,sinc(abs),col="red",lwd=2)
+lines(abs,dnorm(abs),col="green",lwd=2)
+
+dev.off()
+
+par(mfrow=c(1,1))
+
+library(MLmetrics)
+
+resK=KernelEst(X,h,"Tri",abs)$hatf
+MSE(resK,dnorm(X))
+print(paste("La MSE pour Tri est :",round(1/length(X)*sum((resK-dnorm(X))**2),digit=4)))
+
+resK=KernelEst(X,h,"Rect",abs)$hatf
+MSE(resK,dnorm(X))
+print(paste("La MSE pour Rect est :",round(1/length(X)*sum((resK-dnorm(X))**2),digit=4)))
+
+resK=KernelEst(X,h,"EP",abs)$hatf
+MSE(resK,dnorm(X))
+print(paste("La MSE pour EP est :",round(1/length(X)*sum((resK-dnorm(X))**2),digit=4)))
+
+resK=KernelEst(X,h,"Gauss",abs)$hatf
+MSE(resK,dnorm(X))
+print(paste("La MSE pour Gauss est :",round(1/length(X)*sum((resK-dnorm(X))**2),digit=4)))
+
+resK=KernelEst(X,h,"sinc",abs)$hatf
+MSE(resK,dnorm(X))
+print(paste("La MSE pour sinc est :",round(1/length(X)*sum((resK-dnorm(X))**2),digit=4)))

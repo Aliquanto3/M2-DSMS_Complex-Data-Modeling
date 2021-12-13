@@ -1,0 +1,209 @@
+###CC M2 DSMS
+###MDC
+###8 décembre 2021
+###Documents autorisés
+
+###Professeur : Gilles Durrieu
+###UBS
+
+###Élève : Anaël Yahi
+
+#################################
+#Question 1
+#################################
+
+#########
+#Q1 - 1. (a)
+#########
+#Cf PDF
+
+
+#########
+#Q1 - 1. (b)
+#########
+
+n=1000
+X=3/4*(rnorm(n)+rnorm(n,mean=-1.5,sd=sqrt(1/3)))
+
+#########
+#Q1 - 1. (c)
+#########
+#Cf PDF
+
+#################################
+#Question 2
+#################################
+
+#########
+#Q2 - 1.
+#########
+#Cf PDF
+
+#################################
+#Question 3
+#################################
+
+#########
+#Q3 - 1.
+#########
+#Cf PDF
+
+#########
+#Q3 - 2.
+#########
+
+KernelEst <- function(x,h,kern,abs,alpha=0.05,showPlot=F){
+  n <- length(x)
+  m <- length(abs)
+  # on crée les points y où on calcule la densité
+  #abscisses
+  yy <- array(data=c(abs), dim=c(m,n))
+  
+  #observations
+  xx <- t(array(data=c(x), dim=c(n,m))) 
+  
+  #(x-Xi)/h
+  z <- (xx-yy)/h
+  
+  if (kern=='EP')
+  {
+    hatf <- (1/(n*h))*as.vector(rowSums(3*(1-z^2)*(abs(z)<=1)/4))
+    k2=function(u){
+      return(((3/4*(1-u**2))*(abs(u)<=1))**2)
+    }
+  }
+  if (kern=='Rect')
+  {
+    hatf <- (1/(n*h))*as.vector(rowSums((abs(z)<=1)/2))
+    k2=function(u){
+      return(((1/2*abs(u))*(abs(u)<=1))**2)
+    }
+  }
+  if (kern=='Tri')
+  {
+    hatf <- (1/(n*h))*as.vector(rowSums((1-abs(z))*(abs(z)<=1)))
+    k2=function(u){
+      return(((1-abs(u))*(abs(u)<=1))**2)
+    }
+  }
+  if (kern=='Gaus')
+  {
+    hatf <- (1/(n*h))*as.vector(rowSums(dnorm(z,0,sd=1/2.2)))
+    k2=function(u){
+      return((dnorm(u,0,sd=1/2.2))**2)
+    }
+  }
+  if (kern=='sinc')
+  {
+    #pourquoi diviser par pi ? Résultat théorique, pas pour les autres
+    hatf <- (1/(pi*n*h))*as.vector(rowSums(sin(z)/z))
+    k2=function(u){
+      return((sin(u)/u)**2)
+    }
+  }
+  
+  #Calcul de l'intervalle de confiance
+  IC_inf=hatf-qnorm(1-alpha/2)*sqrt(hatf*integrate(k2,-Inf,Inf)$value)/(n*h)
+  IC_sup=hatf+qnorm(1-alpha/2)*sqrt(hatf*integrate(k2,-Inf,Inf)$value)/(n*h)
+  
+  if(showPlot){
+    plot(abs,hatf,ylab="densité",type='l',col='blue',lwd=2,ylim=c(0,0.5))	
+  }
+  return(list(hatf=hatf,abs=abs,IC_inf=IC_inf,IC_sup=IC_sup))
+}
+
+h <- 0.6
+x <- rnorm(1000)
+
+a <- min(x)
+b <- max(x)
+temp <- b-a
+a <- a-temp
+b <- b+temp
+#abscisses
+abs <- a+(b-a)*(1:500)/500
+
+alpha=0.05
+kern="EP"
+
+fhat <- KernelEst(x,h,kern,abs,alpha,T)
+names(fhat)
+fhat$hatf
+fhat$abs
+fhat$IC_inf
+fhat$IC_sup
+
+#########
+#Q3 - 3.
+#########
+
+illrain=read.table("illrain.dat")[[1]]
+hist(illrain)
+
+CV_kern=function(x){
+  
+  n <- length(x)
+  a <- min(x)
+  b <- max(x)
+  temp <- b-a
+  a <- a-temp
+  b <- b+temp
+  abs <- a+(b-a)*(1:500)/500
+  
+  N <- floor(n/2)*(n<100)+floor(n/4)*(n>=100)
+  
+  resultatsCV1 <- array(data=c(0),dim=c(N))
+  resultatsCV2 <- array(data=c(0),dim=c(N))
+  resultatsCV3 <- array(data=c(0),dim=c(N))
+  
+  for(m in 1:N)
+  {
+    h <- m*(b-a)/(N*10)
+    
+    esth <- KernelEst(x,h,"Gaus",abs)
+    #matrice des K((X_i-X_j)/h)
+    x2 <- array(data=c(x),dim=c(n,n))
+    xx <- dnorm((x2-t(x2))/h)
+    temp <- rowSums(xx)-diag(xx)
+    
+    resultatsCV1[m] <- sum((esth$hatf)^2)*((b-a)/500)
+    resultatsCV2[m] <- 2/(n*(n-1)*h)*sum(temp)
+    resultatsCV3[m] <- resultatsCV1[m]-resultatsCV2[m]
+  }
+  
+  #	plot((1:N)*(b-a)/(10*N),resultatsCV1,type='l',lwd=2,col='darkred',xlab='fenêtre',ylab='CV')
+  #	lines((1:N)*(b-a)/(10*N),resultatsCV2, col='blue')
+  #	lines((1:N)*(b-a)/(10*N),resultatsCV3, lwd=2,col='red')
+  plot((1:N)*(b-a)/(10*N),resultatsCV3,type='l',lwd=2,col='darkred',xlab='fenêtre',ylab='CV')
+  
+  plot(1:N*(b-a)/(N*10),resultatsCV3)
+  return(list(CVh=min(resultatsCV3),h=which.min(resultatsCV3)*(b-a)/(10*N)))
+}
+
+h=CV_kern(illrain)$h;h
+
+estNoy <- KernelEst(illrain,h,"Gaus",abs)
+
+hist(estNoy$hatf)
+
+plot(density(illrain, width = h, n = 200), 
+     xlab = "Ill drain", ylab = "Density",
+     col="red",main="Density of ill rain",lty=3)
+rug(illrain)
+lines(estNoy$abs,estNoy$hatf, lty = 1,col="blue")
+
+#########
+#Q3 - 4.
+#########
+
+lines(estNoy$abs,estNoy$IC_inf, lty = 2,col="green")
+lines(estNoy$abs,estNoy$IC_sup, lty = 2,col="dark green")
+
+legend(1.5, 15, legend=c("R Density", "Programmed density", 
+                         "Lower bound of the confidence interval at 95%", 
+                         "Upper bound of the confidence interval at 95%"),
+       col=c("red", "blue","green","dark green"), lty=c(3,1,2,2), cex=0.8)
+#Utiliser le bouton Zoom pour voir le graphe en grand
+
+
+
